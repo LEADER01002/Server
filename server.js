@@ -20,8 +20,11 @@ function auth(req, res, next) {
   const [user, pass] = decoded.split(':');
 
   const valid = authData.some(u => u.username === user && u.password === pass);
-  if (valid) next();
-  else res.status(401).send('Unauthorized');
+  if (valid) {
+    next();
+  } else {
+    res.status(401).send('Unauthorized');
+  }
 }
 
 // المسار اللي بيرجع m3u من Pastebin
@@ -40,4 +43,4 @@ app.get('/playlist', auth, async (req, res) => {
 
 app.listen(PORT, () => {
   console.log(`IPTV server running on port ${PORT}`);
-});});
+});
