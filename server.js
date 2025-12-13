@@ -5,11 +5,10 @@ const fs = require('fs');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// قراءة بيانات المستخدمين من auth.json
-const rawData = fs.readFileSync('auth.json');
-const authData = JSON.parse(rawData).users;
+// قراءة بيانات المستخدمين
+const authData = JSON.parse(fs.readFileSync('auth.json')).users;
 
-// Middleware للتحقق من Authorization Header
+// Middleware للتحقق من Basic Auth
 function auth(req, res, next) {
   const authHeader = req.headers['authorization'];
   if (!authHeader) return res.status(401).send('Unauthorized');
@@ -25,19 +24,20 @@ function auth(req, res, next) {
   else res.status(401).send('Unauthorized');
 }
 
-// مسار الـ m3u
+// المسار اللي بيرجع m3u من Pastebin
 app.get('/playlist', auth, async (req, res) => {
   try {
-    const pastebinUrl = 'https://pastebin.com/raw/XXXXXX'; // ضع رابط m3u هنا
+    const pastebinUrl = 'https:/ /pastebin.com/raw/DRyeXY9Y'; // ضع هنا رابط m3u raw
     const response = await fetch(pastebinUrl);
     const data = await response.text();
     res.set('Content-Type', 'application/vnd.apple.mpegurl');
     res.send(data);
   } catch (err) {
-    res.status(500).send('Error fetching playlist');
+    console.error("Error fetching m3u:", err);
+    res.status(500).send("Error fetching playlist");
   }
 });
 
 app.listen(PORT, () => {
   console.log(`IPTV server running on port ${PORT}`);
-});
+});});
