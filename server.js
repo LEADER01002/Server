@@ -35,7 +35,7 @@ function checkAuth(req, res, next) {
 app.get("/playlist", checkAuth, async (req, res) => {
   try {
     const pastebinRaw =
-      "https://pastebin.com/raw/DRyeXY9Y";
+      "https://pastebin.com/raw/rvnzxSfL";
 
     const response = await fetch(pastebinRaw);
     const data = await response.text();
@@ -50,4 +50,5 @@ app.get("/playlist", checkAuth, async (req, res) => {
 app.listen(PORT, () => {
   console.log("IPTV Server running on port", PORT);
 });
+
 
