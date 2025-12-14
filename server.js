@@ -1,46 +1,43 @@
 const express = require('express');
-const fetch = require('node-fetch');
 const fs = require('fs');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// قراءة بيانات المستخدمين
+// قراءة اليوزرات
 const authData = JSON.parse(fs.readFileSync('auth.json')).users;
 
-// Middleware للتحقق من Basic Auth
+// Basic Auth
 function auth(req, res, next) {
-  const authHeader = req.headers['authorization'];
-  if (!authHeader) return res.status(401).send('Unauthorized');
+  const authHeader = req.headers.authorization;
+  if (!authHeader) return res.sendStatus(401);
 
-  const [type, credentials] = authHeader.split(' ');
-  if (type !== 'Basic') return res.status(401).send('Unauthorized');
+  const [type, encoded] = authHeader.split(' ');
+  if (type !== 'Basic') return res.sendStatus(401);
 
-  const decoded = Buffer.from(credentials, 'base64').toString();
+  const decoded = Buffer.from(encoded, 'base64').toString();
   const [user, pass] = decoded.split(':');
 
-  const valid = authData.some(u => u.username === user && u.password === pass);
-  if (valid) {
-    next();
-  } else {
-    res.status(401).send('Unauthorized');
-  }
+  const ok = authData.some(u => u.username === user && u.password === pass);
+  if (!ok) return res.sendStatus(401);
+
+  next();
 }
 
-// المسار اللي بيرجع m3u من Pastebin
+// playlist
 app.get('/playlist', auth, async (req, res) => {
   try {
-    const pastebinUrl = 'https:/ /pastebin.com/raw/DRyeXY9Y'; // ضع هنا رابط m3u raw
+    const pastebinUrl = 'https:/ /pastebin.com/raw/DRyeXY9Y'; // رابطك
     const response = await fetch(pastebinUrl);
     const data = await response.text();
-    res.set('Content-Type', 'application/vnd.apple.mpegurl');
+
+    res.setHeader('Content-Type', 'application/vnd.apple.mpegurl');
     res.send(data);
-  } catch (err) {
-    console.error("Error fetching m3u:", err);
-    res.status(500).send("Error fetching playlist");
+  } catch (e) {
+    res.status(500).send('Error fetching m3u');
   }
 });
 
 app.listen(PORT, () => {
-  console.log(`IPTV server running on port ${PORT}`);
+  console.log('Server running on port', PORT);
 });
