@@ -1,18 +1,12 @@
 {
   "name": "iptv-server",
   "version": "1.0.0",
-  "description": "Simple IPTV server with username/password in URL",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
   },
   "dependencies": {
-    "express": "^4.18.2",
-    "node-fetch": "^3.3.1"
-  },
-  "engines": {
-    "node": ">=18"
-  },
-  "author": "Your Name",
-  "license": "MIT"
+    "express": "^4.19.2",
+    "node-fetch": "^3.3.2"
+  }
 }
