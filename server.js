@@ -1,43 +1,52 @@
-const express = require('express');
-const fs = require('fs');
+const express = require("express");
+const fs = require("fs");
+const fetch = (...args) =>
+  import("node-fetch").then(({ default: fetch }) => fetch(...args));
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// قراءة اليوزرات
-const authData = JSON.parse(fs.readFileSync('auth.json')).users;
+// اقرأ ملف اليوزرات
+const authData = JSON.parse(fs.readFileSync("./auth.json", "utf8"));
 
-// Basic Auth
-function auth(req, res, next) {
-  const authHeader = req.headers.authorization;
-  if (!authHeader) return res.sendStatus(401);
+function checkAuth(req, res, next) {
+  const auth = req.headers.authorization;
 
-  const [type, encoded] = authHeader.split(' ');
-  if (type !== 'Basic') return res.sendStatus(401);
+  if (!auth || !auth.startsWith("Basic ")) {
+    res.setHeader("WWW-Authenticate", 'Basic realm="IPTV"');
+    return res.status(401).send("Unauthorized");
+  }
 
-  const decoded = Buffer.from(encoded, 'base64').toString();
-  const [user, pass] = decoded.split(':');
+  const base64 = auth.split(" ")[1];
+  const decoded = Buffer.from(base64, "base64").toString("utf8");
+  const [username, password] = decoded.split(":");
 
-  const ok = authData.some(u => u.username === user && u.password === pass);
-  if (!ok) return res.sendStatus(401);
+  const valid = authData.users.find(
+    (u) => u.username === username && u.password === password
+  );
+
+  if (!valid) {
+    return res.status(401).send("Unauthorized");
+  }
 
   next();
 }
 
-// playlist
-app.get('/playlist', auth, async (req, res) => {
+app.get("/playlist", checkAuth, async (req, res) => {
   try {
-    const pastebinUrl = 'https:/ /pastebin.com/raw/DRyeXY9Y'; // رابطك
-    const response = await fetch(pastebinUrl);
+    const pastebinRaw =
+      "https:/ /pastebin.com/raw/DRyeXY9Y";
+
+    const response = await fetch(pastebinRaw);
     const data = await response.text();
 
-    res.setHeader('Content-Type', 'application/vnd.apple.mpegurl');
+    res.setHeader("Content-Type", "application/x-mpegURL");
     res.send(data);
-  } catch (e) {
-    res.status(500).send('Error fetching m3u');
+  } catch (err) {
+    res.status(500).send("Error loading playlist");
   }
 });
 
 app.listen(PORT, () => {
-  console.log('Server running on port', PORT);
+  console.log("IPTV Server running on port", PORT);
 });
